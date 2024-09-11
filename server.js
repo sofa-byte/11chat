@@ -66,7 +66,8 @@ app.get('/', (req, res) => {
         <body>
             <div class="container">
                 <h1>1-on-1 Chat</h1>
-                <input type="text" id="tagInput" placeholder="Enter Tag ID">
+                <input type="text" id="nameInput" placeholder="Enter your name">
+                <input type="text" id="tagInput" placeholder="Enter your Tag ID">
                 <button onclick="connect()">Connect</button>
                 <div id="chatBox" class="chat-box"></div>
                 <input type="text" id="messageInput" placeholder="Type your message...">
@@ -78,27 +79,29 @@ app.get('/', (req, res) => {
                 const socket = io();
 
                 let tagId;
+                let userName;
 
                 function connect() {
+                    userName = document.getElementById('nameInput').value.trim();
                     tagId = document.getElementById('tagInput').value.trim();
-                    if (tagId !== '') {
-                        socket.emit('connectToTag', tagId);
+                    if (userName !== '' && tagId !== '') {
+                        socket.emit('connectToTag', { tagId, userName });
                     } else {
-                        alert('Please enter a valid Tag ID');
+                        alert('Please enter both a valid name and Tag ID');
                     }
                 }
 
                 function sendMessage() {
                     const message = document.getElementById('messageInput').value.trim();
                     if (message !== '') {
-                        socket.emit('sendMessage', { to: tagId, message });
-                        displayMessage(\`You: \${message}\`);
+                        socket.emit('sendMessage', { to: tagId, message, userName });
+                        displayMessage(\`You (\${userName}): \${message}\`);
                         document.getElementById('messageInput').value = '';
                     }
                 }
 
                 socket.on('receiveMessage', data => {
-                    displayMessage(\`Stranger: \${data.message}\`);
+                    displayMessage(\`\${data.sender}: \${data.message}\`);
                 });
 
                 function displayMessage(message) {
@@ -117,16 +120,19 @@ app.get('/', (req, res) => {
 const tagConnections = {};
 
 io.on('connection', socket => {
-    socket.on('connectToTag', tagId => {
+    // When the client connects to a specific tag with their name
+    socket.on('connectToTag', ({ tagId, userName }) => {
         tagConnections[tagId] = socket.id;
+        socket.userName = userName;
+        socket.tagId = tagId;
         socket.join(tagId);
-        console.log(`User connected with tag ID: ${tagId}`);
+        console.log(`${userName} connected with tag ID: ${tagId}`);
     });
 
-    socket.on('sendMessage', data => {
-        const { to, message } = data;
+    // When the client sends a message
+    socket.on('sendMessage', ({ to, message, userName }) => {
         if (tagConnections[to]) {
-            io.to(tagConnections[to]).emit('receiveMessage', { message });
+            io.to(tagConnections[to]).emit('receiveMessage', { message, sender: userName });
         } else {
             console.log(`Tag ID ${to} not connected`);
         }
@@ -134,6 +140,8 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         // Handle disconnection if needed
+        console.log(`${socket.userName} disconnected from tag ID: ${socket.tagId}`);
+        delete tagConnections[socket.tagId];
     });
 });
 
