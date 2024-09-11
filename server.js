@@ -87,6 +87,10 @@ app.get('/', (req, res) => {
                 button:hover {
                     background-color: #45a049;
                 }
+
+                .connecting {
+                    font-style: italic;
+                }
             </style>
         </head>
         <body>
@@ -101,6 +105,7 @@ app.get('/', (req, res) => {
 
             <div class="chat-container">
                 <h1>1-on-1 Chat</h1>
+                <div id="status" class="connecting"></div>
                 <input type="text" id="connectTagInput" placeholder="Enter other's Tag ID">
                 <button onclick="connect()">Connect</button>
                 <div id="chatBox" class="chat-box"></div>
@@ -114,6 +119,7 @@ app.get('/', (req, res) => {
                 let tagId = '';
                 let userName = '';
                 let connectedTagId = '';
+                let connectedUserName = '';
 
                 // Load saved settings from localStorage when page loads
                 window.onload = function() {
@@ -152,8 +158,9 @@ app.get('/', (req, res) => {
                 function connect() {
                     connectedTagId = document.getElementById('connectTagInput').value.trim();
                     if (connectedTagId !== '' && userName !== '' && tagId !== '') {
+                        // Show connecting status
+                        document.getElementById('status').textContent = \`Connecting to Tag ID: \${connectedTagId}\`;
                         socket.emit('connectToTag', { tagId, userName });
-                        alert(\`Connected to Tag ID: \${connectedTagId}\`);
                     } else {
                         alert('Please enter a valid Tag ID and save your settings first');
                     }
@@ -174,6 +181,12 @@ app.get('/', (req, res) => {
                     displayMessage(\`\${data.sender}: \${data.message}\`);
                 });
 
+                // Handle connection status updates
+                socket.on('connected', ({ name }) => {
+                    connectedUserName = name;
+                    document.getElementById('status').textContent = \`Connected to \${name}\`;
+                });
+
                 // Display a message in the chat box
                 function displayMessage(message) {
                     const chatBox = document.getElementById('chatBox');
@@ -189,15 +202,17 @@ app.get('/', (req, res) => {
 });
 
 const tagConnections = {};
+const userNames = {};
 
 io.on('connection', socket => {
     // When the client connects to a specific tag with their name
     socket.on('connectToTag', ({ tagId, userName }) => {
         tagConnections[tagId] = socket.id;
-        socket.userName = userName;
+        userNames[socket.id] = userName;
         socket.tagId = tagId;
         socket.join(tagId);
         console.log(`${userName} connected with tag ID: ${tagId}`);
+        socket.emit('connected', { name: userName }); // Notify client about connection
     });
 
     // When the client sends a message
@@ -211,8 +226,9 @@ io.on('connection', socket => {
 
     socket.on('disconnect', () => {
         // Handle disconnection if needed
-        console.log(`${socket.userName} disconnected from tag ID: ${socket.tagId}`);
+        console.log(`${userNames[socket.id]} disconnected from tag ID: ${socket.tagId}`);
         delete tagConnections[socket.tagId];
+        delete userNames[socket.id];
     });
 });
 
@@ -220,4 +236,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
