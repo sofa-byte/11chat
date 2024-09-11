@@ -124,6 +124,7 @@ app.get('/', (req, res) => {
                 let tagId = '';
                 let userName = '';
                 let connectedTagId = '';
+                let connectedUserName = '';
 
                 // Load saved settings from localStorage when page loads
                 window.onload = function() {
@@ -195,10 +196,9 @@ app.get('/', (req, res) => {
                 });
 
                 // Handle connection status updates
-                socket.on('connected', ({ name }) => {
-                    connectedUserName = name;
+                socket.on('connectionStatus', ({ status, name }) => {
                     const statusElement = document.getElementById('status');
-                    statusElement.textContent = \`Connected to Tag ID: \${connectedTagId}\`;
+                    statusElement.textContent = status;
                     statusElement.classList.remove('hidden');
 
                     // Hide status after 2 seconds
@@ -227,14 +227,24 @@ const userNames = {};
 io.on('connection', socket => {
     // When the client connects to a specific tag with their name
     socket.on('connectToTag', ({ tagId, userName, connectedTagId }) => {
+        // Check if the tag ID is in use
+        if (tagConnections[connectedTagId]) {
+            const connectedSocketId = tagConnections[connectedTagId];
+            io.to(connectedSocketId).emit('connectionStatus', { status: \`Connecting to Tag ID: \${tagId} (${userName})\`, name: userName });
+            socket.emit('connectionStatus', { status: \`Connecting to Tag ID: \${connectedTagId} (${userNames[connectedSocketId]})\` });
+        } else {
+            socket.emit('connectionStatus', { status: \`No user using Tag ID: \${connectedTagId}\` });
+        }
+
+        // Save the connection and notify the connected user if online
         tagConnections[tagId] = socket.id;
         userNames[socket.id] = userName;
         socket.tagId = tagId;
         socket.join(tagId);
 
-        // Notify the client about the connection
         if (tagConnections[connectedTagId]) {
-            io.to(tagConnections[connectedTagId]).emit('connected', { name: userName });
+            io.to(tagConnections[connectedTagId]).emit('connectionStatus', { status: \`Connected to Tag ID: \${tagId} (${userName})\` });
+            socket.emit('connectionStatus', { status: \`Connected to Tag ID: \${connectedTagId} (${userNames[tagConnections[connectedTagId]]})\` });
         }
 
         console.log(`${userName} connected with tag ID: ${tagId}`);
