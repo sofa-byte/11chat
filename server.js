@@ -88,8 +88,13 @@ app.get('/', (req, res) => {
                     background-color: #45a049;
                 }
 
-                .connecting {
+                .status {
                     font-style: italic;
+                    margin-bottom: 10px;
+                }
+
+                .status.hidden {
+                    display: none;
                 }
             </style>
         </head>
@@ -105,7 +110,7 @@ app.get('/', (req, res) => {
 
             <div class="chat-container">
                 <h1>1-on-1 Chat</h1>
-                <div id="status" class="connecting"></div>
+                <div id="status" class="status hidden"></div>
                 <input type="text" id="connectTagInput" placeholder="Enter other's Tag ID">
                 <button onclick="connect()">Connect</button>
                 <div id="chatBox" class="chat-box"></div>
@@ -159,8 +164,15 @@ app.get('/', (req, res) => {
                     connectedTagId = document.getElementById('connectTagInput').value.trim();
                     if (connectedTagId !== '' && userName !== '' && tagId !== '') {
                         // Show connecting status
-                        document.getElementById('status').textContent = \`Connecting to Tag ID: \${connectedTagId}\`;
+                        const statusElement = document.getElementById('status');
+                        statusElement.textContent = \`Connecting to Tag ID: \${connectedTagId}\`;
+                        statusElement.classList.remove('hidden');
                         socket.emit('connectToTag', { tagId, userName });
+
+                        // Hide status after 2 seconds
+                        setTimeout(() => {
+                            statusElement.classList.add('hidden');
+                        }, 2000);
                     } else {
                         alert('Please enter a valid Tag ID and save your settings first');
                     }
@@ -169,7 +181,7 @@ app.get('/', (req, res) => {
                 // Send message to connected user
                 function sendMessage() {
                     const message = document.getElementById('messageInput').value.trim();
-                    if (message !== '') {
+                    if (message !== '' && connectedTagId !== '') {
                         socket.emit('sendMessage', { to: connectedTagId, message, userName });
                         displayMessage(\`You (\${userName}): \${message}\`);
                         document.getElementById('messageInput').value = '';
@@ -178,13 +190,22 @@ app.get('/', (req, res) => {
 
                 // Receive messages from the server
                 socket.on('receiveMessage', data => {
-                    displayMessage(\`\${data.sender}: \${data.message}\`);
+                    if (data.to === connectedTagId) {
+                        displayMessage(\`\${data.sender}: \${data.message}\`);
+                    }
                 });
 
                 // Handle connection status updates
                 socket.on('connected', ({ name }) => {
                     connectedUserName = name;
-                    document.getElementById('status').textContent = \`Connected to \${name}\`;
+                    const statusElement = document.getElementById('status');
+                    statusElement.textContent = \`Connected to Tag ID: \${connectedTagId}\`;
+                    statusElement.classList.remove('hidden');
+
+                    // Hide status after 2 seconds
+                    setTimeout(() => {
+                        statusElement.classList.add('hidden');
+                    }, 2000);
                 });
 
                 // Display a message in the chat box
@@ -218,7 +239,7 @@ io.on('connection', socket => {
     // When the client sends a message
     socket.on('sendMessage', ({ to, message, userName }) => {
         if (tagConnections[to]) {
-            io.to(tagConnections[to]).emit('receiveMessage', { message, sender: userName });
+            io.to(tagConnections[to]).emit('receiveMessage', { message, sender: userName, to });
         } else {
             console.log(`Tag ID ${to} not connected`);
         }
