@@ -124,7 +124,6 @@ app.get('/', (req, res) => {
                 let tagId = '';
                 let userName = '';
                 let connectedTagId = '';
-                let connectedUserName = '';
 
                 // Load saved settings from localStorage when page loads
                 window.onload = function() {
@@ -167,7 +166,7 @@ app.get('/', (req, res) => {
                         const statusElement = document.getElementById('status');
                         statusElement.textContent = \`Connecting to Tag ID: \${connectedTagId}\`;
                         statusElement.classList.remove('hidden');
-                        socket.emit('connectToTag', { tagId, userName });
+                        socket.emit('connectToTag', { tagId, userName, connectedTagId });
 
                         // Hide status after 2 seconds
                         setTimeout(() => {
@@ -190,7 +189,7 @@ app.get('/', (req, res) => {
 
                 // Receive messages from the server
                 socket.on('receiveMessage', data => {
-                    if (data.to === connectedTagId || data.from === connectedTagId) {
+                    if (data.to === tagId || data.from === tagId) {
                         displayMessage(\`\${data.from}: \${data.message}\`);
                     }
                 });
@@ -227,13 +226,18 @@ const userNames = {};
 
 io.on('connection', socket => {
     // When the client connects to a specific tag with their name
-    socket.on('connectToTag', ({ tagId, userName }) => {
+    socket.on('connectToTag', ({ tagId, userName, connectedTagId }) => {
         tagConnections[tagId] = socket.id;
         userNames[socket.id] = userName;
         socket.tagId = tagId;
         socket.join(tagId);
+
+        // Notify the client about the connection
+        if (tagConnections[connectedTagId]) {
+            io.to(tagConnections[connectedTagId]).emit('connected', { name: userName });
+        }
+
         console.log(`${userName} connected with tag ID: ${tagId}`);
-        socket.emit('connected', { name: userName }); // Notify client about connection
     });
 
     // When the client sends a message
@@ -246,7 +250,6 @@ io.on('connection', socket => {
     });
 
     socket.on('disconnect', () => {
-        // Handle disconnection if needed
         console.log(`${userNames[socket.id]} disconnected from tag ID: ${socket.tagId}`);
         delete tagConnections[socket.tagId];
         delete userNames[socket.id];
