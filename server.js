@@ -190,8 +190,8 @@ app.get('/', (req, res) => {
 
                 // Receive messages from the server
                 socket.on('receiveMessage', data => {
-                    if (data.to === connectedTagId) {
-                        displayMessage(\`\${data.sender}: \${data.message}\`);
+                    if (data.to === connectedTagId || data.from === connectedTagId) {
+                        displayMessage(\`\${data.from}: \${data.message}\`);
                     }
                 });
 
@@ -239,7 +239,7 @@ io.on('connection', socket => {
     // When the client sends a message
     socket.on('sendMessage', ({ to, message, userName }) => {
         if (tagConnections[to]) {
-            io.to(tagConnections[to]).emit('receiveMessage', { message, sender: userName, to });
+            io.to(tagConnections[to]).emit('receiveMessage', { message, from: userName, to });
         } else {
             console.log(`Tag ID ${to} not connected`);
         }
