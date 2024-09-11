@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const path = require('path');
 
 // Create an Express app
 const app = express();
@@ -16,32 +15,58 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>1-on-1 Chat</title>
+            <title>1-on-1 Chat with Settings</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
                     background-color: #f0f0f0;
+                    display: flex;
                 }
 
-                .container {
-                    text-align: center;
-                    background-color: #fff;
+                .settings-tab {
+                    width: 25%;
+                    background-color: #333;
+                    color: white;
                     padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100vh;
+                }
+
+                .settings-tab input, .settings-tab button {
+                    margin: 10px 0;
+                    padding: 10px;
+                    width: 90%;
                     border-radius: 5px;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                    width: 300px;
+                    border: none;
+                }
+
+                .settings-tab button {
+                    background-color: #4CAF50;
+                    color: white;
+                    cursor: pointer;
+                }
+
+                .settings-tab button:hover {
+                    background-color: #45a049;
+                }
+
+                .chat-container {
+                    width: 75%;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
                 }
 
                 .chat-box {
-                    height: 200px;
+                    height: 300px;
                     overflow-y: scroll;
                     border: 1px solid #ccc;
                     padding: 10px;
                     margin-bottom: 10px;
+                    width: 100%;
                 }
 
                 input[type="text"], button {
@@ -49,6 +74,7 @@ app.get('/', (req, res) => {
                     padding: 8px;
                     border: 1px solid #ccc;
                     border-radius: 3px;
+                    width: 100%;
                 }
 
                 button {
@@ -64,10 +90,18 @@ app.get('/', (req, res) => {
             </style>
         </head>
         <body>
-            <div class="container">
-                <h1>1-on-1 Chat</h1>
+            <div class="settings-tab">
+                <h2>Settings</h2>
                 <input type="text" id="nameInput" placeholder="Enter your name">
                 <input type="text" id="tagInput" placeholder="Enter your Tag ID">
+                <button onclick="saveSettings()">Save Settings</button>
+                <h3>Saved Info</h3>
+                <p id="savedInfo"></p>
+            </div>
+
+            <div class="chat-container">
+                <h1>1-on-1 Chat</h1>
+                <input type="text" id="connectTagInput" placeholder="Enter other's Tag ID">
                 <button onclick="connect()">Connect</button>
                 <div id="chatBox" class="chat-box"></div>
                 <input type="text" id="messageInput" placeholder="Type your message...">
@@ -77,33 +111,70 @@ app.get('/', (req, res) => {
             <script src="/socket.io/socket.io.js"></script>
             <script>
                 const socket = io();
+                let tagId = '';
+                let userName = '';
+                let connectedTagId = '';
 
-                let tagId;
-                let userName;
+                // Load saved settings from localStorage when page loads
+                window.onload = function() {
+                    const savedName = localStorage.getItem('name');
+                    const savedTagId = localStorage.getItem('tagId');
 
-                function connect() {
+                    if (savedName && savedTagId) {
+                        userName = savedName;
+                        tagId = savedTagId;
+                        document.getElementById('nameInput').value = savedName;
+                        document.getElementById('tagInput').value = savedTagId;
+                        displaySavedInfo();
+                    }
+                };
+
+                // Save name and Tag ID to localStorage
+                function saveSettings() {
                     userName = document.getElementById('nameInput').value.trim();
                     tagId = document.getElementById('tagInput').value.trim();
                     if (userName !== '' && tagId !== '') {
-                        socket.emit('connectToTag', { tagId, userName });
+                        localStorage.setItem('name', userName);
+                        localStorage.setItem('tagId', tagId);
+                        displaySavedInfo();
                     } else {
                         alert('Please enter both a valid name and Tag ID');
                     }
                 }
 
+                // Display saved name and Tag ID
+                function displaySavedInfo() {
+                    const savedInfo = document.getElementById('savedInfo');
+                    savedInfo.textContent = \`Name: \${userName}, Tag ID: \${tagId}\`;
+                }
+
+                // Connect to another user by Tag ID
+                function connect() {
+                    connectedTagId = document.getElementById('connectTagInput').value.trim();
+                    if (connectedTagId !== '' && userName !== '' && tagId !== '') {
+                        socket.emit('connectToTag', { tagId, userName });
+                        alert(\`Connected to Tag ID: \${connectedTagId}\`);
+                    } else {
+                        alert('Please enter a valid Tag ID and save your settings first');
+                    }
+                }
+
+                // Send message to connected user
                 function sendMessage() {
                     const message = document.getElementById('messageInput').value.trim();
                     if (message !== '') {
-                        socket.emit('sendMessage', { to: tagId, message, userName });
+                        socket.emit('sendMessage', { to: connectedTagId, message, userName });
                         displayMessage(\`You (\${userName}): \${message}\`);
                         document.getElementById('messageInput').value = '';
                     }
                 }
 
+                // Receive messages from the server
                 socket.on('receiveMessage', data => {
                     displayMessage(\`\${data.sender}: \${data.message}\`);
                 });
 
+                // Display a message in the chat box
                 function displayMessage(message) {
                     const chatBox = document.getElementById('chatBox');
                     const messageElement = document.createElement('div');
@@ -149,3 +220,4 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
