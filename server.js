@@ -196,7 +196,7 @@ app.get('/', (req, res) => {
                 });
 
                 // Handle connection status updates
-                socket.on('connectionStatus', ({ status, name }) => {
+                socket.on('connectionStatus', ({ status }) => {
                     const statusElement = document.getElementById('status');
                     statusElement.textContent = status;
                     statusElement.classList.remove('hidden');
@@ -225,48 +225,68 @@ const tagConnections = {};
 const userNames = {};
 
 io.on('connection', socket => {
-    // When the client connects to a specific tag with their name
-    socket.on('connectToTag', ({ tagId, userName, connectedTagId }) => {
-        // Check if the tag ID is in use
-        if (tagConnections[connectedTagId]) {
-            const connectedSocketId = tagConnections[connectedTagId];
-            io.to(connectedSocketId).emit('connectionStatus', { status: \`Connecting to Tag ID: \${tagId} (${userName})\`, name: userName });
-            socket.emit('connectionStatus', { status: \`Connecting to Tag ID: \${connectedTagId} (${userNames[connectedSocketId]})\` });
-        } else {
-            socket.emit('connectionStatus', { status: \`No user using Tag ID: \${connectedTagId}\` });
-        }
+    console.log('Client connected');
+    
+    // Handle connection errors
+    const handleError = (error, context) => {
+        console.error(\`Error in \${context}: \`, error);
+        socket.emit('connectionStatus', { status: 'An error occurred. Please try again.' });
+    };
 
-        // Save the connection and notify the connected user if online
-        tagConnections[tagId] = socket.id;
-        userNames[socket.id] = userName;
-        socket.tagId = tagId;
-        socket.join(tagId);
+    try {
+        // When the client connects to a specific tag with their name
+        socket.on('connectToTag', ({ tagId, userName, connectedTagId }) => {
+            if (typeof tagId !== 'string' || typeof connectedTagId !== 'string' || typeof userName !== 'string') {
+                handleError(new Error('Invalid input'), 'connectToTag');
+                return;
+            }
 
-        if (tagConnections[connectedTagId]) {
-            io.to(tagConnections[connectedTagId]).emit('connectionStatus', { status: \`Connected to Tag ID: \${tagId} (${userName})\` });
-            socket.emit('connectionStatus', { status: \`Connected to Tag ID: \${connectedTagId} (${userNames[tagConnections[connectedTagId]]})\` });
-        }
+            if (tagConnections[connectedTagId]) {
+                const connectedSocketId = tagConnections[connectedTagId];
+                io.to(connectedSocketId).emit('connectionStatus', { status: \`Connecting to Tag ID: \${tagId} (${userName})\` });
+                socket.emit('connectionStatus', { status: \`Connecting to Tag ID: \${connectedTagId} (${userNames[connectedSocketId]})\` });
+            } else {
+                socket.emit('connectionStatus', { status: \`No user using Tag ID: \${connectedTagId}\` });
+            }
 
-        console.log(`${userName} connected with tag ID: ${tagId}`);
-    });
+            tagConnections[tagId] = socket.id;
+            userNames[socket.id] = userName;
+            socket.tagId = tagId;
+            socket.join(tagId);
 
-    // When the client sends a message
-    socket.on('sendMessage', ({ to, message, userName }) => {
-        if (tagConnections[to]) {
-            io.to(tagConnections[to]).emit('receiveMessage', { message, from: userName, to });
-        } else {
-            console.log(`Tag ID ${to} not connected`);
-        }
-    });
+            if (tagConnections[connectedTagId]) {
+                io.to(tagConnections[connectedTagId]).emit('connectionStatus', { status: \`Connected to Tag ID: \${tagId} (${userName})\` });
+                socket.emit('connectionStatus', { status: \`Connected to Tag ID: \${connectedTagId} (${userNames[tagConnections[connectedTagId]]})\` });
+            }
 
-    socket.on('disconnect', () => {
-        console.log(`${userNames[socket.id]} disconnected from tag ID: ${socket.tagId}`);
-        delete tagConnections[socket.tagId];
-        delete userNames[socket.id];
-    });
+            console.log(\`\${userName} connected with tag ID: \${tagId}\`);
+        });
+
+        // When the client sends a message
+        socket.on('sendMessage', ({ to, message, userName }) => {
+            if (typeof to !== 'string' || typeof message !== 'string' || typeof userName !== 'string') {
+                handleError(new Error('Invalid input'), 'sendMessage');
+                return;
+            }
+
+            if (tagConnections[to]) {
+                io.to(tagConnections[to]).emit('receiveMessage', { message, from: userName, to });
+            } else {
+                console.log(\`Tag ID \${to} not connected\`);
+            }
+        });
+
+        socket.on('disconnect', () => {
+            console.log(\`\${userNames[socket.id]} disconnected from tag ID: \${socket.tagId}\`);
+            delete tagConnections[socket.tagId];
+            delete userNames[socket.id];
+        });
+    } catch (error) {
+        handleError(error, 'onConnection');
+    }
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(\`Server running on port \${PORT}\`);
 });
