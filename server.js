@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Store connections, tag IDs, and usernames
 let tagConnections = {};
 let userNames = {};
+let pendingConnections = {};
 
 // Serve static files (HTML, CSS, Client-side JS)
 app.get('/', (req, res) => {
@@ -46,15 +47,31 @@ io.on('connection', (socket) => {
             const targetSocketId = tagConnections[targetTagId];
             const targetUserName = userNames[targetSocketId];
 
-            // Notify both users about the connection
-            socket.emit('connectionStatus', { status: `Connecting to Tag ID ${targetTagId} (${targetUserName})...` });
-            io.to(targetSocketId).emit('connectionStatus', { status: `User ${userNames[socket.id]} is connecting to you.` });
+            // Save pending connection request
+            pendingConnections[socket.id] = targetTagId;
 
-            setTimeout(() => {
-                socket.emit('connectionStatus', { status: `Connected to Tag ID ${targetTagId} (${targetUserName})` });
-            }, 2000);
+            // Notify the target user about the connection request
+            io.to(targetSocketId).emit('connectionRequest', { from: socket.id, fromUserName: userNames[socket.id], fromTagId: socket.tagId });
         } else {
             socket.emit('connectionStatus', { status: `No user with Tag ID ${targetTagId}` });
+        }
+    });
+
+    socket.on('respondToConnection', ({ fromSocketId, accepted }) => {
+        if (accepted) {
+            const targetSocketId = fromSocketId;
+            const targetUserName = userNames[targetSocketId];
+
+            // Notify both users about the accepted connection
+            socket.emit('connectionStatus', { status: `Connected to Tag ID ${pendingConnections[targetSocketId]} (${targetUserName})` });
+            io.to(targetSocketId).emit('connectionStatus', { status: `Your connection to ${userNames[socket.id]} has been accepted.` });
+            
+            // Clear pending connection
+            delete pendingConnections[targetSocketId];
+        } else {
+            // Notify the user that the connection was rejected
+            io.to(fromSocketId).emit('connectionStatus', { status: `Your connection request was rejected.` });
+            delete pendingConnections[fromSocketId];
         }
     });
 
