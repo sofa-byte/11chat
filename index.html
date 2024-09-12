@@ -11,6 +11,11 @@
         <h2>Tag Chat</h2>
         
         <div id="connectionStatus"></div>
+        <div id="invitation" style="display: none;">
+            <span id="invitationText"></span>
+            <button id="acceptInvitation">Accept</button>
+            <button id="declineInvitation">Decline</button>
+        </div>
 
         <div class="user-setup">
             <input id="userName" type="text" placeholder="Enter your name" />
@@ -43,6 +48,10 @@
         const sendMessageButton = document.getElementById('sendMessage');
         const messagesDiv = document.getElementById('messages');
         const connectionStatus = document.getElementById('connectionStatus');
+        const invitationDiv = document.getElementById('invitation');
+        const invitationText = document.getElementById('invitationText');
+        const acceptInvitationButton = document.getElementById('acceptInvitation');
+        const declineInvitationButton = document.getElementById('declineInvitation');
 
         let currentTagId = '';
         let currentUserName = '';
@@ -91,6 +100,23 @@
             setTimeout(() => {
                 connectionStatus.textContent = '';
             }, 2000);
+        });
+
+        // Handle invitations
+        socket.on('invitation', ({ from, fromUserName }) => {
+            invitationText.textContent = `Tag ID ${from} (${fromUserName}) is trying to connect to you`;
+            invitationDiv.style.display = 'block';
+
+            // Accept invitation
+            acceptInvitationButton.onclick = () => {
+                socket.emit('acceptInvitation', { fromTagId: from });
+                invitationDiv.style.display = 'none';
+            };
+
+            // Decline invitation
+            declineInvitationButton.onclick = () => {
+                invitationDiv.style.display = 'none';
+            };
         });
     </script>
 </body>
