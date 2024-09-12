@@ -25,6 +25,33 @@ h2 {
     text-align: center;
 }
 
+#invitation {
+    background: #ffdddd;
+    border: 1px solid #ffaaaa;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+#invitationText {
+    display: block;
+    margin-bottom: 10px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
 .messages {
     background: #eee;
     height: 200px;
@@ -44,13 +71,7 @@ input, button {
     margin: 5px 0;
 }
 
-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #45a049;
+input {
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
