@@ -228,8 +228,8 @@ io.on('connection', socket => {
     console.log('Client connected');
     
     // Handle connection errors
-    const handleError = (error, context) => {
-        console.error(\`Error in \${context}: \`, error);
+    const handleError = (error, context) => 
+        console.error(`Error in ${context}: `, error);
         socket.emit('connectionStatus', { status: 'An error occurred. Please try again.' });
     };
 
