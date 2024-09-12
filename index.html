@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tag Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <h2>Tag Chat</h2>
+        
+        <div id="connectionStatus"></div>
+
+        <div class="user-setup">
+            <input id="userName" type="text" placeholder="Enter your name" />
+            <input id="tagId" type="text" placeholder="Enter your Tag ID" />
+            <button id="setTag">Set Tag ID</button>
+        </div>
+
+        <div class="chat-box">
+            <input id="targetTag" type="text" placeholder="Enter target Tag ID" />
+            <button id="connectToTag">Connect</button>
+        </div>
+
+        <div class="messages" id="messages"></div>
+
+        <input id="messageInput" type="text" placeholder="Type a message" />
+        <button id="sendMessage">Send</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        // Get elements
+        const userNameInput = document.getElementById('userName');
+        const tagIdInput = document.getElementById('tagId');
+        const setTagButton = document.getElementById('setTag');
+        const targetTagInput = document.getElementById('targetTag');
+        const connectToTagButton = document.getElementById('connectToTag');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageButton = document.getElementById('sendMessage');
+        const messagesDiv = document.getElementById('messages');
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        let currentTagId = '';
+        let currentUserName = '';
+
+        // Set tag ID
+        setTagButton.addEventListener('click', () => {
+            const tagId = tagIdInput.value.trim();
+            const userName = userNameInput.value.trim();
+
+            if (tagId && userName) {
+                currentTagId = tagId;
+                currentUserName = userName;
+                socket.emit('setTagId', { tagId, userName });
+            }
+        });
+
+        // Connect to another Tag ID
+        connectToTagButton.addEventListener('click', () => {
+            const targetTagId = targetTagInput.value.trim();
+            if (targetTagId) {
+                socket.emit('connectToTag', { targetTagId });
+            }
+        });
+
+        // Send a message
+        sendMessageButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            const targetTagId = targetTagInput.value.trim();
+
+            if (message && targetTagId) {
+                socket.emit('sendMessage', { to: targetTagId, message });
+                messageInput.value = '';
+            }
+        });
+
+        // Receive a message
+        socket.on('receiveMessage', ({ message, from }) => {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = `${from}: ${message}`;
+            messagesDiv.appendChild(messageElement);
+        });
+
+        // Connection status updates
+        socket.on('connectionStatus', ({ status }) => {
+            connectionStatus.textContent = status;
+            setTimeout(() => {
+                connectionStatus.textContent = '';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
