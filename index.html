@@ -38,35 +38,121 @@
 <body>
     <div class="container">
         <h1>Romance Text Adventure</h1>
-        <p id="storyText">You find yourself in a shitty café, sipping your shitty coffee. Across the room, you notice two intriguing individuals...</p>
-        <div id="choices" style="display: none;">
-            <button onclick="chooseOption(1)">Approach the mysterious stranger</button>
-            <button onclick="chooseOption(2)">Talk to the charming barista</button>
-        </div>
+        <p id="storyText"></p>
+        <div id="choices"></div>
         <button id="startButton" onclick="startGame()">Start Game</button>
     </div>
 
     <script>
+        const story = {
+            1: {
+                text: "You find yourself in a bustling café, sipping your favorite coffee. Across the room, you notice two intriguing individuals...",
+                choices: [
+                    { text: "Approach the mysterious stranger", next: 2 },
+                    { text: "Talk to the charming barista", next: 3 }
+                ]
+            },
+            2: {
+                text: "You walk over to the stranger by the window. They glance up from their book and smile. Do you...",
+                choices: [
+                    { text: "Ask what they're reading", next: 4 },
+                    { text: "Compliment their smile", next: 5 }
+                ]
+            },
+            3: {
+                text: "You approach the barista behind the counter. They greet you warmly. Do you...",
+                choices: [
+                    { text: "Compliment the coffee", next: 6 },
+                    { text: "Ask if they always work here", next: 7 }
+                ]
+            },
+            4: {
+                text: "They tell you they're reading a book about astronomy. You both start discussing the stars. The conversation is fascinating. Do you...",
+                choices: [
+                    { text: "Ask if they'd like to stargaze with you sometime", next: 8 },
+                    { text: "Change the subject to something else", next: 9 }
+                ]
+            },
+            5: {
+                text: "They blush and thank you for the compliment. You both start chatting, and the connection feels natural. Do you...",
+                choices: [
+                    { text: "Ask for their number", next: 8 },
+                    { text: "Offer to pay for their coffee", next: 10 }
+                ]
+            },
+            6: {
+                text: "The barista smiles and says they're proud of the coffee here. Do you...",
+                choices: [
+                    { text: "Ask for their favorite recommendation", next: 11 },
+                    { text: "Compliment their smile", next: 12 }
+                ]
+            },
+            7: {
+                text: "They tell you they've worked here for a while, and you start discussing favorite places in the city. Do you...",
+                choices: [
+                    { text: "Ask if they'd like to grab a coffee sometime", next: 8 },
+                    { text: "Tell them you should leave", next: 13 }
+                ]
+            },
+            8: {
+                text: "You make plans to meet again. It seems like the start of something wonderful.",
+                choices: []
+            },
+            9: {
+                text: "You talk about various topics, and though the conversation is pleasant, it doesn't seem to go anywhere special.",
+                choices: []
+            },
+            10: {
+                text: "They smile and accept your offer. You buy them a coffee and continue talking. The connection grows stronger.",
+                choices: []
+            },
+            11: {
+                text: "The barista recommends a special drink that you haven't tried before. You both bond over your shared love of unique coffee.",
+                choices: []
+            },
+            12: {
+                text: "They laugh and thank you. It's clear there's a connection, and you exchange numbers before leaving.",
+                choices: []
+            },
+            13: {
+                text: "You politely excuse yourself and leave the café, though you can't help but wonder what might have been.",
+                choices: []
+            }
+        };
+
         function startGame() {
             document.getElementById('startButton').style.display = 'none';
-            document.getElementById('storyText').innerText = "What do you do?";
-            document.getElementById('choices').style.display = 'block';
+            showStory(1);  // Start the game at story point 1
         }
 
-        function chooseOption(choice) {
-            document.getElementById('choices').style.display = 'none';
-            if (choice === 1) {
-                document.getElementById('storyText').innerText = 
-                    "You walk over to the stranger by the window. " + 
-                    "They glance up from their book and smile. " + 
-                    "You start chatting and discover they share your love for poetry. " + 
-                    "The conversation flows effortlessly.";
-            } else if (choice === 2) {
-                document.getElementById('storyText').innerText = 
-                    "You approach the barista behind the counter. " + 
-                    "They greet you warmly and ask how your day has been so far. " + 
-                    "You find yourself enjoying their company and sense a connection. " + 
-                    "You exchange numbers before leaving the café.";
+        function showStory(step) {
+            const storyText = document.getElementById('storyText');
+            const choicesDiv = document.getElementById('choices');
+            
+            // Clear the previous choices
+            choicesDiv.innerHTML = '';
+
+            // Set the story text
+            storyText.innerText = story[step].text;
+
+            // Display choices if any
+            if (story[step].choices.length > 0) {
+                story[step].choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.innerText = choice.text;
+                    button.onclick = function() {
+                        showStory(choice.next);
+                    };
+                    choicesDiv.appendChild(button);
+                });
+            } else {
+                // End of the story, you can offer to restart the game
+                const restartButton = document.createElement('button');
+                restartButton.innerText = "Restart Game";
+                restartButton.onclick = function() {
+                    startGame();
+                };
+                choicesDiv.appendChild(restartButton);
             }
         }
     </script>
