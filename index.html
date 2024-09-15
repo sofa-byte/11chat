@@ -3,121 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tag Chat</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Romance Text Adventure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            margin: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h2>Tag Chat</h2>
-        
-        <div id="connectionStatus"></div>
-        <div id="invitation" style="display: none;">
-            <span id="invitationText"></span>
-            <button id="acceptInvitation">Accept</button>
-            <button id="declineInvitation">Decline</button>
+    <div class="container">
+        <h1>Romance Text Adventure</h1>
+        <p id="storyText">You find yourself in a bustling café, sipping your favorite coffee. Across the room, you notice two intriguing individuals...</p>
+        <div id="choices" style="display: none;">
+            <button onclick="chooseOption(1)">Approach the mysterious stranger</button>
+            <button onclick="chooseOption(2)">Talk to the charming barista</button>
         </div>
-
-        <div class="user-setup">
-            <input id="userName" type="text" placeholder="Enter your name" />
-            <input id="tagId" type="text" placeholder="Enter your Tag ID" />
-            <button id="setTag">Set Tag ID</button>
-        </div>
-
-        <div class="chat-box">
-            <input id="targetTag" type="text" placeholder="Enter target Tag ID" />
-            <button id="connectToTag">Connect</button>
-        </div>
-
-        <div class="messages" id="messages"></div>
-
-        <input id="messageInput" type="text" placeholder="Type a message" />
-        <button id="sendMessage">Send</button>
+        <button id="startButton" onclick="startGame()">Start Game</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        function startGame() {
+            document.getElementById('startButton').style.display = 'none';
+            document.getElementById('storyText').innerText = "What do you do?";
+            document.getElementById('choices').style.display = 'block';
+        }
 
-        // Get elements
-        const userNameInput = document.getElementById('userName');
-        const tagIdInput = document.getElementById('tagId');
-        const setTagButton = document.getElementById('setTag');
-        const targetTagInput = document.getElementById('targetTag');
-        const connectToTagButton = document.getElementById('connectToTag');
-        const messageInput = document.getElementById('messageInput');
-        const sendMessageButton = document.getElementById('sendMessage');
-        const messagesDiv = document.getElementById('messages');
-        const connectionStatus = document.getElementById('connectionStatus');
-        const invitationDiv = document.getElementById('invitation');
-        const invitationText = document.getElementById('invitationText');
-        const acceptInvitationButton = document.getElementById('acceptInvitation');
-        const declineInvitationButton = document.getElementById('declineInvitation');
-
-        let currentTagId = '';
-        let currentUserName = '';
-
-        // Set tag ID
-        setTagButton.addEventListener('click', () => {
-            const tagId = tagIdInput.value.trim();
-            const userName = userNameInput.value.trim();
-
-            if (tagId && userName) {
-                currentTagId = tagId;
-                currentUserName = userName;
-                socket.emit('setTagId', { tagId, userName });
+        function chooseOption(choice) {
+            document.getElementById('choices').style.display = 'none';
+            if (choice === 1) {
+                document.getElementById('storyText').innerText = 
+                    "You walk over to the stranger by the window. " + 
+                    "They glance up from their book and smile. " + 
+                    "You start chatting and discover they share your love for poetry. " + 
+                    "The conversation flows effortlessly.";
+            } else if (choice === 2) {
+                document.getElementById('storyText').innerText = 
+                    "You approach the barista behind the counter. " + 
+                    "They greet you warmly and ask how your day has been so far. " + 
+                    "You find yourself enjoying their company and sense a connection. " + 
+                    "You exchange numbers before leaving the café.";
             }
-        });
-
-        // Connect to another Tag ID
-        connectToTagButton.addEventListener('click', () => {
-            const targetTagId = targetTagInput.value.trim();
-            if (targetTagId) {
-                socket.emit('connectToTag', { targetTagId });
-            }
-        });
-
-        // Send a message
-        sendMessageButton.addEventListener('click', () => {
-            const message = messageInput.value.trim();
-            const targetTagId = targetTagInput.value.trim();
-
-            if (message && targetTagId) {
-                socket.emit('sendMessage', { to: targetTagId, message });
-                messageInput.value = '';
-            }
-        });
-
-        // Receive a message
-        socket.on('receiveMessage', ({ message, from }) => {
-            const messageElement = document.createElement('div');
-            messageElement.textContent = `${from}: ${message}`;
-            messagesDiv.appendChild(messageElement);
-        });
-
-        // Connection status updates
-        socket.on('connectionStatus', ({ status }) => {
-            connectionStatus.textContent = status;
-            setTimeout(() => {
-                connectionStatus.textContent = '';
-            }, 2000);
-        });
-
-        // Handle invitations
-        socket.on('invitation', ({ from, fromUserName }) => {
-            invitationText.textContent = `Tag ID ${from} (${fromUserName}) is trying to connect to you`;
-            invitationDiv.style.display = 'block';
-
-            // Accept invitation
-            acceptInvitationButton.onclick = () => {
-                socket.emit('acceptInvitation', { fromTagId: from });
-                invitationDiv.style.display = 'none';
-            };
-
-            // Decline invitation
-            declineInvitationButton.onclick = () => {
-                invitationDiv.style.display = 'none';
-            };
-        });
+        }
     </script>
 </body>
 </html>
