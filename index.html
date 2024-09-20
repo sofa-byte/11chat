@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Toggle Boxes with Timer</title>
+<title>Toggle Boxes with Global Timer</title>
 <style>
   .toggle-box {
     width: 50px;
@@ -58,11 +58,25 @@
   <div class="toggle-box" onclick="toggleValue(this)">0</div>
   <div class="toggle-box" onclick="toggleValue(this)">1</div>
   <div class="toggle-box" onclick="toggleValue(this)">0</div>
+  <div class="toggle-box" onclick="toggleValue(this)">1</div>
+  <div class="toggle-box" onclick="toggleValue(this)">0</div>
+  <div class="toggle-box" onclick="toggleValue(this)">1</div>
+  <div class="toggle-box" onclick="toggleValue(this)">0</div>
+  <div class="toggle-box" onclick="toggleValue(this)">1</div>
+  <div class="toggle-box" onclick="toggleValue(this)">0</div>
+  <div class="toggle-box" onclick="toggleValue(this)">1</div>
+  <div class="toggle-box" onclick="toggleValue(this)">0</div>
+  <div class="toggle-box" onclick="toggleValue(this)">1</div>
+  <div class="toggle-box" onclick="toggleValue(this)">0</div>
 </div>
 
 <script>
+let globalTimerActive = false;
+
 function toggleValue(element) {
-  // Toggle the value
+  if (globalTimerActive) return;  // Prevent any further clicks if the timer is active
+
+  // Toggle the value of the clicked box
   var value = element.textContent.trim();
   if (value === '1') {
     element.textContent = '0';
@@ -70,11 +84,29 @@ function toggleValue(element) {
     element.textContent = '1';
   }
 
-  // Disable the box and set a 10-second timer
-  element.classList.add('disabled');
+  // Disable all boxes
+  disableAllBoxes();
+
+  // Set a global 10-second timer
+  globalTimerActive = true;
   setTimeout(function() {
-    element.classList.remove('disabled');
-  }, 10000); // 10 seconds (10000 milliseconds)
+    enableAllBoxes();
+    globalTimerActive = false;
+  }, 10000); // 10 seconds
+}
+
+function disableAllBoxes() {
+  const boxes = document.querySelectorAll('.toggle-box');
+  boxes.forEach(box => {
+    box.classList.add('disabled');
+  });
+}
+
+function enableAllBoxes() {
+  const boxes = document.querySelectorAll('.toggle-box');
+  boxes.forEach(box => {
+    box.classList.remove('disabled');
+  });
 }
 </script>
 
