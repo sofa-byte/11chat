@@ -1,160 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Romance Text Adventure</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            color: #333;
-            text-align: center;
-            padding: 50px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 15px 20px;
-            margin: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            border-radius: 5px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toggle Boxes</title>
+<style>
+  .toggle-box {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #000;
+    display: inline-block;
+    text-align: center;
+    line-height: 50px;
+    cursor: pointer;
+    margin: 5px;
+    user-select: none; /* Prevent text selection */
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Romance Text Adventure</h1>
-        <p id="storyText"></p>
-        <div id="choices"></div>
-        <button id="startButton" onclick="startGame()">Start Game</button>
-    </div>
 
-    <script>
-        const story = {
-            1: {
-                text: "You find yourself in a bustling café, sipping your favorite coffee. Across the room, you notice two intriguing individuals...",
-                choices: [
-                    { text: "Approach the mysterious stranger", next: 2 },
-                    { text: "Talk to the charming barista", next: 3 }
-                ]
-            },
-            2: {
-                text: "You walk over to the stranger by the window. They glance up from their book and smile. Do you...",
-                choices: [
-                    { text: "Ask what they're reading", next: 4 },
-                    { text: "Compliment their smile", next: 5 }
-                ]
-            },
-            3: {
-                text: "You approach the barista behind the counter. They greet you warmly. Do you...",
-                choices: [
-                    { text: "Compliment the coffee", next: 6 },
-                    { text: "Ask if they always work here", next: 7 }
-                ]
-            },
-            4: {
-                text: "They tell you they're reading a book about astronomy. You both start discussing the stars. The conversation is fascinating. Do you...",
-                choices: [
-                    { text: "Ask if they'd like to stargaze with you sometime", next: 8 },
-                    { text: "Change the subject to something else", next: 9 }
-                ]
-            },
-            5: {
-                text: "They blush and thank you for the compliment. You both start chatting, and the connection feels natural. Do you...",
-                choices: [
-                    { text: "Ask for their number", next: 8 },
-                    { text: "Offer to pay for their coffee", next: 10 }
-                ]
-            },
-            6: {
-                text: "The barista smiles and says they're proud of the coffee here. Do you...",
-                choices: [
-                    { text: "Ask for their favorite recommendation", next: 11 },
-                    { text: "Compliment their smile", next: 12 }
-                ]
-            },
-            7: {
-                text: "They tell you they've worked here for a while, and you start discussing favorite places in the city. Do you...",
-                choices: [
-                    { text: "Ask if they'd like to grab a coffee sometime", next: 8 },
-                    { text: "Tell them you should leave", next: 13 }
-                ]
-            },
-            8: {
-                text: "You make plans to meet again. It seems like the start of something wonderful.",
-                choices: []
-            },
-            9: {
-                text: "You talk about various topics, and though the conversation is pleasant, it doesn't seem to go anywhere special.",
-                choices: []
-            },
-            10: {
-                text: "They smile and accept your offer. You buy them a coffee and continue talking. The connection grows stronger.",
-                choices: []
-            },
-            11: {
-                text: "The barista recommends a special drink that you haven't tried before. You both bond over your shared love of unique coffee.",
-                choices: []
-            },
-            12: {
-                text: "They laugh and thank you. It's clear there's a connection, and you exchange numbers before leaving.",
-                choices: []
-            },
-            13: {
-                text: "You politely excuse yourself and leave the café, though you can't help but wonder what might have been.",
-                choices: []
-            }
-        };
+<div class="toggle-box" onclick="toggleValue(this)">1</div>
+<div class="toggle-box" onclick="toggleValue(this)">0</div>
+<div class="toggle-box" onclick="toggleValue(this)">1</div>
+<div class="toggle-box" onclick="toggleValue(this)">0</div>
+<div class="toggle-box" onclick="toggleValue(this)">1</div>
+<div class="toggle-box" onclick="toggleValue(this)">0</div>
+<div class="toggle-box" onclick="toggleValue(this)">1</div>
+<div class="toggle-box" onclick="toggleValue(this)">0</div>
 
-        function startGame() {
-            document.getElementById('startButton').style.display = 'none';
-            showStory(1);  // Start the game at story point 1
-        }
+<script>
+function toggleValue(element) {
+  var value = element.textContent.trim();
+  if (value === '1') {
+    element.textContent = '0';
+  } else if (value === '0') {
+    element.textContent = '1';
+  }
+}
+</script>
 
-        function showStory(step) {
-            const storyText = document.getElementById('storyText');
-            const choicesDiv = document.getElementById('choices');
-            
-            // Clear the previous choices
-            choicesDiv.innerHTML = '';
-
-            // Set the story text
-            storyText.innerText = story[step].text;
-
-            // Display choices if any
-            if (story[step].choices.length > 0) {
-                story[step].choices.forEach(choice => {
-                    const button = document.createElement('button');
-                    button.innerText = choice.text;
-                    button.onclick = function() {
-                        showStory(choice.next);
-                    };
-                    choicesDiv.appendChild(button);
-                });
-            } else {
-                // End of the story, you can offer to restart the game
-                const restartButton = document.createElement('button');
-                restartButton.innerText = "Restart Game";
-                restartButton.onclick = function() {
-                    startGame();
-                };
-                choicesDiv.appendChild(restartButton);
-            }
-        }
-    </script>
 </body>
 </html>
