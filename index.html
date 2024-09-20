@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Toggle Boxes</title>
+<title>Toggle Boxes with Timer</title>
 <style>
   .toggle-box {
     width: 50px;
@@ -20,6 +20,10 @@
     display: flex;
     flex-wrap: wrap;
     width: 550px;
+  }
+  .disabled {
+    pointer-events: none;
+    background-color: lightgray;
   }
 </style>
 </head>
@@ -54,18 +58,23 @@
   <div class="toggle-box" onclick="toggleValue(this)">0</div>
   <div class="toggle-box" onclick="toggleValue(this)">1</div>
   <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
 </div>
 
 <script>
 function toggleValue(element) {
+  // Toggle the value
   var value = element.textContent.trim();
   if (value === '1') {
     element.textContent = '0';
   } else if (value === '0') {
     element.textContent = '1';
   }
+
+  // Disable the box and set a 10-second timer
+  element.classList.add('disabled');
+  setTimeout(function() {
+    element.classList.remove('disabled');
+  }, 10000); // 10 seconds (10000 milliseconds)
 }
 </script>
 
