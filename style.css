@@ -1,0 +1,93 @@
+/* General page styling */
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background: #f5f6fa;
+}
+
+/* Container for the game */
+.game-container {
+  text-align: center;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Heading style */
+h1 {
+  font-size: 24px;
+  color: #2f3640;
+  margin-bottom: 20px;
+}
+
+/* Box container layout */
+.box-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* Toggle boxes styling */
+.toggle-box {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #2f3640;
+  display: inline-block;
+  text-align: center;
+  line-height: 60px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 5px;
+  user-select: none;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Default box state */
+.toggle-box {
+  background-color: #f5f6fa;
+  color: #2f3640;
+}
+
+/* Highlight boxes when they are being toggled */
+.toggle-box:hover {
+  background-color: #74b9ff;
+  color: #ffffff;
+}
+
+/* Button styling */
+button {
+  padding: 10px 20px;
+  background-color: #2f3640;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+/* Button hover effect */
+button:hover {
+  background-color: #44bd32;
+}
+
+/* Hidden elements */
+.hidden {
+  display: none;
+}
+
+/* Hint section */
+.hint {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #e74c3c;
+  font-size: 18px;
+}
