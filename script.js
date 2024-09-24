@@ -79,7 +79,8 @@ function nextStage() {
     document.getElementById('nextStageButton').classList.add('hidden');
   } else {
     // Game finished
-    document.getElementById('stageContainer').innerHTML = '🎉 Congratulations! You completed all stages!';
+    document.getElementById('stageContainer').innerHTML = '🎉 Congratulations!
+    You completed all stages!';
     document.getElementById('hintButton').classList.add('hidden');
     document.getElementById('nextStageButton').classList.add('hidden');
   }
