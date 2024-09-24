@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Toggle Boxes with Global Timer</title>
+<title>Toggle Boxes with Secret Combination</title>
 <style>
   .toggle-box {
     width: 50px;
@@ -19,11 +19,15 @@
   .box-container {
     display: flex;
     flex-wrap: wrap;
-    width: 550px;
+    width: 220px;
+    margin-bottom: 20px;
   }
-  .disabled {
-    pointer-events: none;
-    background-color: lightgray;
+  .hidden {
+    display: none;
+  }
+  .hint {
+    margin-top: 20px;
+    font-weight: bold;
   }
 </style>
 </head>
@@ -34,48 +38,20 @@
   <div class="toggle-box" onclick="toggleValue(this)">0</div>
   <div class="toggle-box" onclick="toggleValue(this)">1</div>
   <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
-  <div class="toggle-box" onclick="toggleValue(this)">1</div>
-  <div class="toggle-box" onclick="toggleValue(this)">0</div>
 </div>
 
+<!-- Hidden button that appears when the correct combination is entered -->
+<button id="hintButton" class="hidden" onclick="showHint()">Show Hint</button>
+
+<!-- Hint for the next combination -->
+<div id="hint" class="hint hidden"></div>
+
 <script>
-let globalTimerActive = false;
+// Correct combination for the first stage
+let correctCombination = ['1', '0', '1', '0'];
+let nextHint = "Try the combination 0 1 1 0 for the next stage.";
 
 function toggleValue(element) {
-  if (globalTimerActive) return;  // Prevent any further clicks if the timer is active
-
   // Toggle the value of the clicked box
   var value = element.textContent.trim();
   if (value === '1') {
@@ -84,29 +60,34 @@ function toggleValue(element) {
     element.textContent = '1';
   }
 
-  // Disable all boxes
-  disableAllBoxes();
-
-  // Set a global 10-second timer
-  globalTimerActive = true;
-  setTimeout(function() {
-    enableAllBoxes();
-    globalTimerActive = false;
-  }, 2000); // 10 seconds
+  // Check if the correct combination is entered
+  checkCombination();
 }
 
-function disableAllBoxes() {
+function checkCombination() {
   const boxes = document.querySelectorAll('.toggle-box');
+  let currentCombination = [];
+
+  // Collect the current state of all the boxes
   boxes.forEach(box => {
-    box.classList.add('disabled');
+    currentCombination.push(box.textContent.trim());
   });
+
+  // Compare current combination with the correct combination
+  if (JSON.stringify(currentCombination) === JSON.stringify(correctCombination)) {
+    // Show the hint button if the combination is correct
+    document.getElementById('hintButton').classList.remove('hidden');
+  } else {
+    // Hide the hint button if the combination is incorrect
+    document.getElementById('hintButton').classList.add('hidden');
+    document.getElementById('hint').classList.add('hidden'); // Hide the hint if incorrect
+  }
 }
 
-function enableAllBoxes() {
-  const boxes = document.querySelectorAll('.toggle-box');
-  boxes.forEach(box => {
-    box.classList.remove('disabled');
-  });
+function showHint() {
+  // Show the hint for the next combination
+  document.getElementById('hint').textContent = nextHint;
+  document.getElementById('hint').classList.remove('hidden');
 }
 </script>
 
